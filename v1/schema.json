@@ -1,0 +1,2117 @@
+{
+  "$id": "https://fairmarkit.com/schemas/json-form-schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "JSON Form Schema",
+  "description": "Validation schema for json-form JSON Schemas.",
+  "$defs": {
+    "LocaleMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "I18n": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/LocaleMap"
+        },
+        "description": {
+          "$ref": "#/$defs/LocaleMap"
+        },
+        "suffixTooltip": {
+          "$ref": "#/$defs/LocaleMap"
+        },
+        "addFieldText": {
+          "$ref": "#/$defs/LocaleMap"
+        }
+      }
+    },
+    "XPermissions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isHidden": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "XEventFieldMapping": {
+      "type": "object",
+      "description": "Maps event type keys to target field names in the event payload",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "StringFormat": {
+      "type": "string",
+      "enum": ["date", "date-time", "time", "email", "phone", "hostname", "ipv4", "ipv6", "uri", "uuid"]
+    },
+    "StringType": {
+      "type": "string",
+      "const": "string"
+    },
+    "NumberType": {
+      "type": "string",
+      "const": "number"
+    },
+    "BooleanType": {
+      "type": "string",
+      "const": "boolean"
+    },
+    "JsonType": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/StringType"
+        },
+        {
+          "$ref": "#/$defs/NumberType"
+        },
+        {
+          "$ref": "#/$defs/BooleanType"
+        },
+        {
+          "type": "string",
+          "enum": ["object", "array"]
+        }
+      ]
+    },
+    "FieldsetVariant": {
+      "type": "string",
+      "enum": ["default", "address", "datafield", "preferred-supplier"]
+    },
+    "DurationVariation": {
+      "type": "string",
+      "enum": ["days", "hours"]
+    },
+    "NumberFormat": {
+      "type": "string",
+      "enum": ["default", "integer", "decimal", "decimal-1"],
+      "description": "Numeric formatting: default (2 decimals), integer, decimal (6 decimals), or decimal-1 (1 decimal place)"
+    },
+    "CurrencyValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "name"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "ISO currency code"
+        },
+        "name": {
+          "type": "string",
+          "description": "Currency display name"
+        }
+      }
+    },
+    "RelativeDateKeyword": {
+      "type": "string",
+      "enum": [
+        "now",
+        "today",
+        "yesterday",
+        "tomorrow",
+        "next-week",
+        "last-week",
+        "next-month",
+        "last-month",
+        "next-year",
+        "last-year"
+      ],
+      "description": "Relative date keyword resolved at validation time; for date-time fields, now includes the current time"
+    },
+    "IsoDateString": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "ISO 8601 calendar date (YYYY-MM-DD)"
+    },
+    "IsoDateTimeString": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d{1,3})?)?(Z|[+-]\\d{2}:?\\d{2})?$",
+      "description": "ISO 8601 date-time (YYYY-MM-DDTHH:mm:ss with optional fractional seconds and timezone offset)"
+    },
+    "DateConstraint": {
+      "description": "Date or date-time constraint for date and date-time fields: ISO date (YYYY-MM-DD), ISO datetime (YYYY-MM-DDTHH:mm:ss), or relative keyword (now, today, yesterday, tomorrow, next-week, last-week, next-month, last-month, next-year, last-year)",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RelativeDateKeyword"
+        },
+        {
+          "$ref": "#/$defs/IsoDateString"
+        },
+        {
+          "$ref": "#/$defs/IsoDateTimeString"
+        }
+      ]
+    },
+    "FieldsetFilter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "static": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "external": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "PresentationViews": {
+      "type": "object",
+      "description": "Presentation overrides per view name",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isHidden": {
+            "$ref": "#/$defs/PresentationProps/isHidden"
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "step": {
+            "$ref": "#/$defs/PresentationProps/step"
+          },
+          "gridColumn": {
+            "$ref": "#/$defs/PresentationProps/gridColumn"
+          },
+          "tableColumnFlex": {
+            "$ref": "#/$defs/PresentationProps/tableColumnFlex"
+          },
+          "gridOffset": {
+            "$ref": "#/$defs/PresentationProps/gridOffset"
+          },
+          "gridBreak": {
+            "$ref": "#/$defs/PresentationProps/gridBreak"
+          },
+          "size": {
+            "$ref": "#/$defs/PresentationProps/size"
+          }
+        }
+      }
+    },
+    "PresentationProps": {
+      "supplierVisible": {
+        "type": "boolean",
+        "description": "When false, field is hidden from supplier-facing views (deprecated; prefer x-permissions use)"
+      },
+      "step": {
+        "type": "string",
+        "description": "Wizard step identifier"
+      },
+      "isHidden": {
+        "type": "boolean",
+        "description": "When true, field is not rendered in the form"
+      },
+      "size": {
+        "type": "string",
+        "enum": ["sm", "md"],
+        "description": "Input control size for edit mode"
+      },
+      "gridColumn": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 12,
+        "description": "12-column grid span (1–12) for form layout"
+      },
+      "tableColumnFlex": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Table grid column flex weight for table layout"
+      },
+      "gridOffset": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 11,
+        "description": "Leading empty columns (0–11) before the field in the grid"
+      },
+      "gridBreak": {
+        "type": "boolean",
+        "description": "When true, starts a new grid row before this field"
+      },
+      "views": {
+        "description": "Per-view presentation overrides merged when a named view is active",
+        "$ref": "#/$defs/PresentationViews"
+      },
+      "i18n": {
+        "description": "Locale-specific overrides for title, description, suffix tooltip, and add-field button text",
+        "$ref": "#/$defs/I18n"
+      },
+      "resetFieldsOnChange": {
+        "type": "array",
+        "description": "Field paths to reset when this field value changes",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "uniqueItems": true
+      },
+      "punchOutFilterKey": {
+        "type": "string",
+        "description": "Field key used to filter punch-out catalog tags"
+      },
+      "priceBooksFilterKey": {
+        "type": "string",
+        "description": "Field key used to filter price book catalog tags (datafield fieldset and nested datafield properties only)"
+      },
+      "priceBooksItemFilterKey": {
+        "type": "string",
+        "description": "Field key used to filter price book item tags"
+      },
+      "stored": {
+        "type": "boolean",
+        "description": "When true, field value is included in stored-form payload on save"
+      },
+      "externalKey": {
+        "type": "string",
+        "description": "External context key for prefilling field value"
+      },
+      "textVariant": {
+        "type": "string",
+        "enum": ["default", "html"],
+        "default": "default",
+        "description": "Text rendering mode: plain (default) or rich HTML (html)"
+      },
+      "canCopy": {
+        "type": "boolean",
+        "description": "When true, shows a copy-to-clipboard action in view mode"
+      },
+      "suffixTooltip": {
+        "type": "string",
+        "description": "Tooltip text shown next to the field suffix icon"
+      },
+      "description": {
+        "type": "string",
+        "description": "HTML description override"
+      },
+      "currencyKey": {
+        "type": "string",
+        "description": "Form field name whose value supplies the currency code for money fields"
+      },
+      "currency": {
+        "description": "Currency set directly on the money field",
+        "$ref": "#/$defs/CurrencyValue"
+      },
+      "numberFormat": {
+        "description": "Numeric display format for number, money, percentage, and duration fields",
+        "$ref": "#/$defs/NumberFormat"
+      },
+      "geolocationSearchDisabled": {
+        "type": "boolean",
+        "description": "When true on address fieldsets, disables geolocation autocomplete and limits search to saved buyer addresses"
+      },
+      "onlyLowestLevelCategory": {
+        "type": "boolean",
+        "description": "When true on category fields, restricts selection to leaf category nodes only"
+      },
+      "durationVariation": {
+        "description": "Unit label for duration fields: days or hours",
+        "$ref": "#/$defs/DurationVariation"
+      },
+      "fieldsetVariant": {
+        "description": "Fieldset widget variant (default, address, datafield, or preferred-supplier)",
+        "$ref": "#/$defs/FieldsetVariant"
+      },
+      "fieldsetFilter": {
+        "description": "Filter rules for datafield and preferred-supplier fieldsets (static, schema, and external mappings)",
+        "$ref": "#/$defs/FieldsetFilter"
+      },
+      "datafieldSlug": {
+        "type": "string",
+        "description": "Datafield definition slug when fieldsetVariant is datafield"
+      },
+      "datafieldPreview": {
+        "type": "array",
+        "description": "Property paths displayed in datafield read-only preview",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
+      "addFieldText": {
+        "type": "string",
+        "description": "Custom label for the add-item button on group-array fields"
+      },
+      "mapPreferredSupplierToItems": {
+        "type": "boolean",
+        "description": "When true on preferred-supplier fieldset, maps selected supplier id onto intake line items"
+      },
+      "addSupplierButton": {
+        "type": "boolean",
+        "description": "When true, shows an add-supplier action on preferred-supplier fieldsets"
+      }
+    },
+    "PresentationLayoutProps": {
+      "properties": {
+        "supplierVisible": {
+          "$ref": "#/$defs/PresentationProps/supplierVisible"
+        },
+        "step": {
+          "$ref": "#/$defs/PresentationProps/step"
+        },
+        "isHidden": {
+          "$ref": "#/$defs/PresentationProps/isHidden"
+        },
+        "size": {
+          "$ref": "#/$defs/PresentationProps/size"
+        },
+        "gridColumn": {
+          "$ref": "#/$defs/PresentationProps/gridColumn"
+        },
+        "tableColumnFlex": {
+          "$ref": "#/$defs/PresentationProps/tableColumnFlex"
+        },
+        "gridOffset": {
+          "$ref": "#/$defs/PresentationProps/gridOffset"
+        },
+        "gridBreak": {
+          "$ref": "#/$defs/PresentationProps/gridBreak"
+        },
+        "views": {
+          "$ref": "#/$defs/PresentationProps/views"
+        }
+      }
+    },
+    "PresentationFieldBindingProps": {
+      "properties": {
+        "i18n": {
+          "$ref": "#/$defs/PresentationProps/i18n"
+        },
+        "resetFieldsOnChange": {
+          "$ref": "#/$defs/PresentationProps/resetFieldsOnChange"
+        },
+        "punchOutFilterKey": {
+          "$ref": "#/$defs/PresentationProps/punchOutFilterKey"
+        },
+        "stored": {
+          "$ref": "#/$defs/PresentationProps/stored"
+        },
+        "externalKey": {
+          "$ref": "#/$defs/PresentationProps/externalKey"
+        }
+      }
+    },
+    "PresentationTextExtraProps": {
+      "properties": {
+        "textVariant": {
+          "$ref": "#/$defs/PresentationProps/textVariant"
+        },
+        "canCopy": {
+          "$ref": "#/$defs/PresentationProps/canCopy"
+        },
+        "suffixTooltip": {
+          "$ref": "#/$defs/PresentationProps/suffixTooltip"
+        },
+        "description": {
+          "$ref": "#/$defs/PresentationProps/description"
+        }
+      }
+    },
+    "PresentationSelectExtraProps": {
+      "properties": {
+        "suffixTooltip": {
+          "$ref": "#/$defs/PresentationProps/suffixTooltip"
+        },
+        "priceBooksItemFilterKey": {
+          "$ref": "#/$defs/PresentationProps/priceBooksItemFilterKey"
+        }
+      }
+    },
+    "PresentationNumberFormatExtraProps": {
+      "properties": {
+        "numberFormat": {
+          "$ref": "#/$defs/PresentationProps/numberFormat"
+        }
+      }
+    },
+    "PresentationCategoryExtraProps": {
+      "properties": {
+        "onlyLowestLevelCategory": {
+          "$ref": "#/$defs/PresentationProps/onlyLowestLevelCategory"
+        },
+        "priceBooksItemFilterKey": {
+          "$ref": "#/$defs/PresentationProps/priceBooksItemFilterKey"
+        }
+      }
+    },
+    "PresentationMoneyExtraProps": {
+      "properties": {
+        "currencyKey": {
+          "$ref": "#/$defs/PresentationProps/currencyKey"
+        },
+        "currency": {
+          "$ref": "#/$defs/PresentationProps/currency"
+        }
+      }
+    },
+    "PresentationDurationExtraProps": {
+      "properties": {
+        "durationVariation": {
+          "$ref": "#/$defs/PresentationProps/durationVariation"
+        },
+        "numberFormat": {
+          "$ref": "#/$defs/PresentationProps/numberFormat"
+        }
+      }
+    },
+    "PresentationFieldsetExtraProps": {
+      "properties": {
+        "fieldsetVariant": {
+          "$ref": "#/$defs/PresentationProps/fieldsetVariant"
+        },
+        "fieldsetFilter": {
+          "$ref": "#/$defs/PresentationProps/fieldsetFilter"
+        },
+        "datafieldSlug": {
+          "$ref": "#/$defs/PresentationProps/datafieldSlug"
+        },
+        "datafieldPreview": {
+          "$ref": "#/$defs/PresentationProps/datafieldPreview"
+        },
+        "addFieldText": {
+          "$ref": "#/$defs/PresentationProps/addFieldText"
+        },
+        "mapPreferredSupplierToItems": {
+          "$ref": "#/$defs/PresentationProps/mapPreferredSupplierToItems"
+        },
+        "addSupplierButton": {
+          "$ref": "#/$defs/PresentationProps/addSupplierButton"
+        },
+        "geolocationSearchDisabled": {
+          "$ref": "#/$defs/PresentationProps/geolocationSearchDisabled"
+        },
+        "priceBooksFilterKey": {
+          "$ref": "#/$defs/PresentationProps/priceBooksFilterKey"
+        }
+      }
+    },
+    "PresentationGroupArrayExtraProps": {
+      "properties": {
+        "addFieldText": {
+          "$ref": "#/$defs/PresentationProps/addFieldText"
+        }
+      }
+    },
+    "PresentationDisplayExtraProps": {
+      "properties": {
+        "i18n": {
+          "$ref": "#/$defs/PresentationProps/i18n"
+        }
+      }
+    },
+    "PresentationStandardPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey"
+      ]
+    },
+    "PresentationNumberPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "numberFormat"
+      ]
+    },
+    "PresentationDatePropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey"
+      ]
+    },
+    "PresentationCategoryPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "onlyLowestLevelCategory",
+        "priceBooksItemFilterKey"
+      ]
+    },
+    "PresentationTextPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "textVariant",
+        "canCopy",
+        "suffixTooltip",
+        "description"
+      ]
+    },
+    "PresentationSelectPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "suffixTooltip",
+        "priceBooksItemFilterKey"
+      ]
+    },
+    "PresentationMoneyPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "currencyKey",
+        "currency",
+        "numberFormat"
+      ]
+    },
+    "PresentationDurationPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "durationVariation",
+        "numberFormat"
+      ]
+    },
+    "PresentationPercentagePropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "numberFormat"
+      ]
+    },
+    "PresentationFieldsetPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "fieldsetVariant",
+        "fieldsetFilter",
+        "datafieldSlug",
+        "datafieldPreview",
+        "addFieldText",
+        "mapPreferredSupplierToItems",
+        "addSupplierButton",
+        "geolocationSearchDisabled",
+        "priceBooksFilterKey"
+      ]
+    },
+    "PresentationGroupArrayPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "addFieldText"
+      ]
+    },
+    "PresentationDisplayPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n"
+      ]
+    },
+    "PresentationDividerPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views"
+      ]
+    },
+    "PresentationAllPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "textVariant",
+        "canCopy",
+        "suffixTooltip",
+        "description",
+        "priceBooksItemFilterKey",
+        "numberFormat",
+        "onlyLowestLevelCategory",
+        "currencyKey",
+        "currency",
+        "durationVariation",
+        "fieldsetVariant",
+        "fieldsetFilter",
+        "datafieldSlug",
+        "datafieldPreview",
+        "addFieldText",
+        "mapPreferredSupplierToItems",
+        "addSupplierButton",
+        "geolocationSearchDisabled",
+        "priceBooksFilterKey"
+      ]
+    },
+    "PresentationText": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationTextExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "text"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationTextPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationNumber": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationNumberFormatExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "number"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationNumberPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationRadio": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "radio"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationStandardPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationCheckbox": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "checkbox"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationStandardPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationSelect": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationSelectExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "select"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationSelectPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationDate": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "date"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationDatePropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationDateTime": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "datetime"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationDatePropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationFile": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "file"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationStandardPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationIdentity": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "identity"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationStandardPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationTitle": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationDisplayExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "title"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationDisplayPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationDescription": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationDisplayExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "description"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationDisplayPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationFieldset": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldsetExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "fieldset"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationFieldsetPropertyNames"
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "fieldsetVariant": {
+                  "const": "preferred-supplier"
+                }
+              },
+              "required": ["fieldsetVariant"]
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": ["mapPreferredSupplierToItems"]
+                },
+                {
+                  "required": ["addSupplierButton"]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "fieldsetVariant": {
+                  "const": "datafield"
+                }
+              },
+              "required": ["fieldsetVariant"]
+            }
+          },
+          "then": {
+            "not": {
+              "required": ["priceBooksFilterKey"]
+            }
+          }
+        }
+      ]
+    },
+    "PresentationGroupArray": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationGroupArrayExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "group-array"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationGroupArrayPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationCategory": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationCategoryExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "category"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationCategoryPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationCurrency": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "currency"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationStandardPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationDivider": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "divider"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationDividerPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationMoney": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationMoneyExtraProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationNumberFormatExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "money"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationMoneyPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationUom": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "uom"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationStandardPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationPercentage": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationNumberFormatExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "percentage"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationPercentagePropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationDuration": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingProps"
+        },
+        {
+          "$ref": "#/$defs/PresentationDurationExtraProps"
+        },
+        {
+          "properties": {
+            "inputType": {
+              "const": "duration"
+            }
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/PresentationDurationPropertyNames"
+          }
+        }
+      ]
+    },
+    "PresentationInputType": {
+      "type": "string",
+      "enum": [
+        "text",
+        "number",
+        "radio",
+        "checkbox",
+        "select",
+        "date",
+        "datetime",
+        "file",
+        "identity",
+        "title",
+        "description",
+        "fieldset",
+        "group-array",
+        "category",
+        "currency",
+        "divider",
+        "money",
+        "uom",
+        "percentage",
+        "duration"
+      ]
+    },
+    "Presentation": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/PresentationAllPropertyNames"
+      },
+      "properties": {
+        "inputType": {
+          "$ref": "#/$defs/PresentationInputType"
+        },
+        "i18n": {
+          "$ref": "#/$defs/I18n"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "text"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationText"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "number"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationNumber"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "radio"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationRadio"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "checkbox"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationCheckbox"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "select"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationSelect"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "date"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationDate"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "datetime"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationDateTime"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "file"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationFile"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "identity"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationIdentity"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "title"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationTitle"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "description"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationDescription"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "fieldset"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationFieldset"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "group-array"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationGroupArray"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "category"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationCategory"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "currency"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationCurrency"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "divider"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationDivider"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "money"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationMoney"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "uom"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationUom"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "percentage"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationPercentage"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputType": {
+                "const": "duration"
+              }
+            },
+            "required": ["inputType"]
+          },
+          "then": {
+            "$ref": "#/$defs/PresentationDuration"
+          }
+        }
+      ]
+    },
+    "FieldPropertyWhenStringTypes": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "enum": ["text", "radio", "date", "datetime", "title", "description", "divider", "currency"]
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "$ref": "#/$defs/StringType"
+          }
+        }
+      }
+    },
+    "FieldPropertyWhenNumberTypes": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "enum": ["number", "money", "percentage", "duration"]
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "$ref": "#/$defs/NumberType"
+          }
+        }
+      }
+    },
+    "FieldPropertyWhenBooleanType": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "checkbox"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "$ref": "#/$defs/BooleanType"
+          }
+        }
+      }
+    },
+    "FieldPropertyWhenSelectType": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "select"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/StringType"
+              },
+              {
+                "const": "array"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "FieldPropertyWhenFileType": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "file"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/StringType"
+              },
+              {
+                "const": "array"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "FieldPropertyWhenIdentityType": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "identity"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "const": "object"
+          }
+        },
+        "required": ["properties"]
+      }
+    },
+    "FieldPropertyWhenObjectTypes": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "enum": ["fieldset", "uom"]
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "const": "object"
+          }
+        },
+        "required": ["properties"]
+      }
+    },
+    "FieldPropertyWhenGroupArrayType": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "group-array"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "const": "array"
+          }
+        },
+        "required": ["items"]
+      }
+    },
+    "FieldPropertyWhenCategoryType": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "category"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "type": {
+            "const": "array"
+          },
+          "items": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "type": {
+                "const": "string"
+              }
+            }
+          },
+          "x-type": {
+            "const": "category"
+          }
+        },
+        "required": ["items"]
+      }
+    },
+    "FieldPropertyDefaultWhenString": {
+      "if": {
+        "properties": {
+          "type": {
+            "$ref": "#/$defs/StringType"
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "default": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "FieldPropertyDefaultWhenNumber": {
+      "if": {
+        "properties": {
+          "type": {
+            "$ref": "#/$defs/NumberType"
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "default": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "FieldPropertyDefaultWhenBoolean": {
+      "if": {
+        "properties": {
+          "type": {
+            "$ref": "#/$defs/BooleanType"
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "default": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "FieldPropertyDefaultWhenObject": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "object"
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "default": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "FieldPropertyDefaultWhenArray": {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "array"
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "default": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "FieldProperty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/JsonType"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "readOnly": {
+          "type": "boolean"
+        },
+        "default": {},
+        "const": {
+          "type": "string"
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "format": {
+          "$ref": "#/$defs/StringFormat"
+        },
+        "minDate": {
+          "description": "Minimum allowed value for date (format: date) and date-time (format: date-time) fields; ISO date (YYYY-MM-DD), ISO datetime (YYYY-MM-DDTHH:mm:ss), or relative keyword (now, today, yesterday, tomorrow, next-week, last-week, next-month, last-month, next-year, last-year)",
+          "$ref": "#/$defs/DateConstraint"
+        },
+        "maxDate": {
+          "description": "Maximum allowed value for date (format: date) and date-time (format: date-time) fields; ISO date (YYYY-MM-DD), ISO datetime (YYYY-MM-DDTHH:mm:ss), or relative keyword (now, today, yesterday, tomorrow, next-week, last-week, next-month, last-month, next-year, last-year)",
+          "$ref": "#/$defs/DateConstraint"
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "multipleOf": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "oneOf": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/FieldProperty"
+          }
+        },
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "format": {
+              "type": "string"
+            },
+            "properties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/FieldProperty"
+              }
+            },
+            "anyOf": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "additionalProperties": {
+          "type": "boolean"
+        },
+        "x-permissions": {
+          "$ref": "#/$defs/XPermissions"
+        },
+        "x-type": {
+          "type": "string"
+        },
+        "x-jsf-presentation": {
+          "$ref": "#/$defs/Presentation"
+        },
+        "x-event-field-mapping": {
+          "$ref": "#/$defs/XEventFieldMapping"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/FieldPropertyWhenStringTypes"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenNumberTypes"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenBooleanType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenSelectType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenFileType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenIdentityType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenObjectTypes"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenGroupArrayType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenCategoryType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenString"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenNumber"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenBoolean"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenObject"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenArray"
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "properties"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "type": {
+      "const": "object"
+    },
+    "additionalProperties": {
+      "const": false
+    },
+    "required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/FieldProperty"
+      }
+    },
+    "allOf": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

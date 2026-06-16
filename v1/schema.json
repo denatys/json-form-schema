@@ -28,6 +28,31 @@
         }
       }
     },
+    "SelectOptionI18n": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/LocaleMap"
+        }
+      }
+    },
+    "SelectOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["const", "title"],
+      "properties": {
+        "const": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "i18n": {
+          "$ref": "#/$defs/SelectOptionI18n"
+        }
+      }
+    },
     "XPermissions": {
       "type": "object",
       "additionalProperties": {
@@ -1677,6 +1702,69 @@
         }
       }
     },
+    "FieldPropertyWhenRadioOrSelectOneOf": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "enum": ["radio", "select"]
+              }
+            }
+          },
+          "type": {
+            "$ref": "#/$defs/StringType"
+          }
+        },
+        "required": ["x-jsf-presentation", "type"]
+      },
+      "then": {
+        "properties": {
+          "oneOf": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/SelectOption"
+            }
+          }
+        }
+      }
+    },
+    "FieldPropertyWhenSelectMultiAnyOf": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "select"
+              }
+            }
+          },
+          "type": {
+            "const": "array"
+          }
+        },
+        "required": ["x-jsf-presentation", "type"]
+      },
+      "then": {
+        "properties": {
+          "items": {
+            "type": "object",
+            "properties": {
+              "anyOf": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/SelectOption"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "FieldPropertyWhenFileType": {
       "if": {
         "properties": {
@@ -2189,6 +2277,12 @@
         },
         {
           "$ref": "#/$defs/FieldPropertyWhenSelectType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenRadioOrSelectOneOf"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenSelectMultiAnyOf"
         },
         {
           "$ref": "#/$defs/FieldPropertyWhenFileType"

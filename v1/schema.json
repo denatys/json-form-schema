@@ -87,6 +87,10 @@
       "type": "string",
       "enum": ["default", "address", "datafield", "preferred-supplier"]
     },
+    "TextVariant": {
+      "type": "string",
+      "enum": ["default", "html"]
+    },
     "DurationVariation": {
       "type": "string",
       "enum": ["days", "hours"]
@@ -175,40 +179,6 @@
         }
       }
     },
-    "PresentationViews": {
-      "type": "object",
-      "description": "Presentation overrides per view name",
-      "additionalProperties": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "isHidden": {
-            "$ref": "#/$defs/PresentationProps/isHidden"
-          },
-          "readOnly": {
-            "type": "boolean"
-          },
-          "step": {
-            "$ref": "#/$defs/PresentationProps/step"
-          },
-          "gridColumn": {
-            "$ref": "#/$defs/PresentationProps/gridColumn"
-          },
-          "tableColumnFlex": {
-            "$ref": "#/$defs/PresentationProps/tableColumnFlex"
-          },
-          "gridOffset": {
-            "$ref": "#/$defs/PresentationProps/gridOffset"
-          },
-          "gridBreak": {
-            "$ref": "#/$defs/PresentationProps/gridBreak"
-          },
-          "size": {
-            "$ref": "#/$defs/PresentationProps/size"
-          }
-        }
-      }
-    },
     "PresentationProps": {
       "supplierVisible": {
         "type": "boolean",
@@ -269,14 +239,6 @@
         "type": "string",
         "description": "Field key used to filter punch-out catalog tags"
       },
-      "priceBooksFilterKey": {
-        "type": "string",
-        "description": "Field key used to filter price book catalog tags (datafield fieldset and nested datafield properties only)"
-      },
-      "priceBooksItemFilterKey": {
-        "type": "string",
-        "description": "Field key used to filter price book item tags"
-      },
       "stored": {
         "type": "boolean",
         "description": "When true, field value is included in stored-form payload on save"
@@ -285,11 +247,17 @@
         "type": "string",
         "description": "External context key for prefilling field value"
       },
-      "textVariant": {
+      "priceBooksFilterKey": {
         "type": "string",
-        "enum": ["default", "html"],
-        "default": "default",
-        "description": "Text rendering mode: plain (default) or rich HTML (html)"
+        "description": "Field key used to filter price book catalog tags (datafield fieldset and nested datafield properties only)"
+      },
+      "priceBooksItemFilterKey": {
+        "type": "string",
+        "description": "Field key used to filter price book item tags"
+      },
+      "textVariant": {
+        "description": "Text rendering mode: plain (default) or rich HTML (html)",
+        "$ref": "#/$defs/TextVariant"
       },
       "canCopy": {
         "type": "boolean",
@@ -312,12 +280,8 @@
         "$ref": "#/$defs/CurrencyValue"
       },
       "numberFormat": {
-        "description": "Numeric display format for number, money, percentage, and duration fields",
+        "description": "Numeric display format for number fields",
         "$ref": "#/$defs/NumberFormat"
-      },
-      "geolocationSearchDisabled": {
-        "type": "boolean",
-        "description": "When true on address fieldsets, disables geolocation autocomplete and limits search to saved buyer addresses"
       },
       "onlyLowestLevelCategory": {
         "type": "boolean",
@@ -358,6 +322,44 @@
       "addSupplierButton": {
         "type": "boolean",
         "description": "When true, shows an add-supplier action on preferred-supplier fieldsets"
+      },
+      "geolocationSearchDisabled": {
+        "type": "boolean",
+        "description": "When true on address fieldsets, disables geolocation autocomplete and limits search to saved buyer addresses"
+      }
+    },
+    "PresentationViews": {
+      "type": "object",
+      "description": "Presentation overrides per view name",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isHidden": {
+            "$ref": "#/$defs/PresentationProps/isHidden"
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "step": {
+            "$ref": "#/$defs/PresentationProps/step"
+          },
+          "gridColumn": {
+            "$ref": "#/$defs/PresentationProps/gridColumn"
+          },
+          "tableColumnFlex": {
+            "$ref": "#/$defs/PresentationProps/tableColumnFlex"
+          },
+          "gridOffset": {
+            "$ref": "#/$defs/PresentationProps/gridOffset"
+          },
+          "gridBreak": {
+            "$ref": "#/$defs/PresentationProps/gridBreak"
+          },
+          "size": {
+            "$ref": "#/$defs/PresentationProps/size"
+          }
+        }
       }
     },
     "PresentationLayoutProps": {
@@ -467,9 +469,6 @@
       "properties": {
         "durationVariation": {
           "$ref": "#/$defs/PresentationProps/durationVariation"
-        },
-        "numberFormat": {
-          "$ref": "#/$defs/PresentationProps/numberFormat"
         }
       }
     },
@@ -659,8 +658,7 @@
         "stored",
         "externalKey",
         "currencyKey",
-        "currency",
-        "numberFormat"
+        "currency"
       ]
     },
     "PresentationDurationPropertyNames": {
@@ -680,8 +678,7 @@
         "punchOutFilterKey",
         "stored",
         "externalKey",
-        "durationVariation",
-        "numberFormat"
+        "durationVariation"
       ]
     },
     "PresentationPercentagePropertyNames": {
@@ -700,8 +697,7 @@
         "resetFieldsOnChange",
         "punchOutFilterKey",
         "stored",
-        "externalKey",
-        "numberFormat"
+        "externalKey"
       ]
     },
     "PresentationFieldsetPropertyNames": {
@@ -1207,9 +1203,6 @@
           "$ref": "#/$defs/PresentationMoneyExtraProps"
         },
         {
-          "$ref": "#/$defs/PresentationNumberFormatExtraProps"
-        },
-        {
           "properties": {
             "inputType": {
               "const": "money"
@@ -1248,9 +1241,6 @@
         },
         {
           "$ref": "#/$defs/PresentationFieldBindingProps"
-        },
-        {
-          "$ref": "#/$defs/PresentationNumberFormatExtraProps"
         },
         {
           "properties": {
@@ -1736,6 +1726,9 @@
         "properties": {
           "type": {
             "const": "object"
+          },
+          "properties": {
+            "$ref": "#/$defs/IdentityProperties"
           }
         },
         "required": ["properties"]
@@ -1823,6 +1816,158 @@
           }
         },
         "required": ["items"]
+      }
+    },
+    "FieldPropertyWhenAddressFieldset": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType", "fieldsetVariant"],
+            "properties": {
+              "inputType": {
+                "const": "fieldset"
+              },
+              "fieldsetVariant": {
+                "const": "address"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "properties": {
+            "$ref": "#/$defs/AddressFieldsetProperties"
+          }
+        },
+        "required": ["properties"]
+      }
+    },
+    "FieldPropertyWhenUomType": {
+      "if": {
+        "properties": {
+          "x-jsf-presentation": {
+            "type": "object",
+            "required": ["inputType"],
+            "properties": {
+              "inputType": {
+                "const": "uom"
+              }
+            }
+          }
+        },
+        "required": ["x-jsf-presentation"]
+      },
+      "then": {
+        "properties": {
+          "properties": {
+            "$ref": "#/$defs/UomProperties"
+          }
+        },
+        "required": ["properties"]
+      }
+    },
+    "StringProperty": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/FieldProperty"
+        },
+        {
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/StringType"
+            }
+          }
+        }
+      ]
+    },
+    "UuidProperty": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/FieldProperty"
+        },
+        {
+          "properties": {
+            "type": {
+              "$ref": "#/$defs/StringType"
+            },
+            "format": {
+              "const": "uuid"
+            }
+          },
+          "required": ["format"]
+        }
+      ]
+    },
+    "IdentityProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "email", "first_name", "last_name"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "email": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "first_name": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "last_name": {
+          "$ref": "#/$defs/StringProperty"
+        }
+      }
+    },
+    "AddressFieldsetProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["address1", "address2", "city", "country", "state", "zip"],
+      "properties": {
+        "address1": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "address2": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "city": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "country": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "state": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "zip": {
+          "$ref": "#/$defs/StringProperty"
+        }
+      }
+    },
+    "UomProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["abbreviation", "code", "description", "id", "title", "unified_uom_id"],
+      "properties": {
+        "abbreviation": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "code": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "description": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "id": {
+          "$ref": "#/$defs/UuidProperty"
+        },
+        "title": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "unified_uom_id": {
+          "$ref": "#/$defs/StringProperty"
+        }
       }
     },
     "FieldPropertyDefaultWhenString": {
@@ -2059,6 +2204,12 @@
         },
         {
           "$ref": "#/$defs/FieldPropertyWhenCategoryType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenAddressFieldset"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenUomType"
         },
         {
           "$ref": "#/$defs/FieldPropertyDefaultWhenString"

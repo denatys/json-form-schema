@@ -40,7 +40,7 @@
     "SelectOption": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["const", "title"],
+      "required": ["const"],
       "properties": {
         "const": {
           "type": "string"

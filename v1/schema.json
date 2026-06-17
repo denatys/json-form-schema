@@ -298,19 +298,6 @@
       "x-event-field-mapping": {
         "description": "Maps event types to payload field names. Default: unset.",
         "$ref": "#/$defs/XEventFieldMapping"
-      },
-      "scopedJsonSchema": {
-        "type": "object",
-        "description": "Additional JSON Schema properties scoped to nested field values. Default: unset.",
-        "properties": {
-          "properties": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object"
-            }
-          }
-        },
-        "additionalProperties": false
       }
     },
     "FieldPropertyWhenStringTypes": {
@@ -438,7 +425,8 @@
               "$ref": "#/$defs/SelectOption"
             }
           }
-        }
+        },
+        "required": ["oneOf"]
       }
     },
     "FieldPropertyWhenSelectMultiAnyOf": {
@@ -970,9 +958,6 @@
         },
         "x-event-field-mapping": {
           "$ref": "#/$defs/FieldProps/x-event-field-mapping"
-        },
-        "scopedJsonSchema": {
-          "$ref": "#/$defs/FieldProps/scopedJsonSchema"
         }
       },
       "allOf": [

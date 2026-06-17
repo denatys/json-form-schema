@@ -2,7 +2,6 @@
   "$id": "https://fairmarkit.com/schemas/json-form-schema#",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "JSON Form Schema",
-  "description": "Validates JSON Form Schemas.",
   "$defs": {
     "LocaleMap": {
       "type": "object",

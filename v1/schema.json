@@ -27,6 +27,31 @@
         }
       }
     },
+    "SelectOptionI18n": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/LocaleMap"
+        }
+      }
+    },
+    "SelectOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["const"],
+      "properties": {
+        "const": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "i18n": {
+          "$ref": "#/$defs/SelectOptionI18n"
+        }
+      }
+    },
     "StringFormat": {
       "type": "string",
       "enum": ["date", "date-time", "time", "email", "phone", "hostname", "ipv4", "ipv6", "uri", "uuid"]
@@ -73,21 +98,17 @@
         "last-month",
         "next-year",
         "last-year"
-      ],
-      "description": "Relative date keyword. Now includes time for date-time fields."
+      ]
     },
     "IsoDateString": {
       "type": "string",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-      "description": "ISO date (YYYY-MM-DD)."
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
     },
     "IsoDateTimeString": {
       "type": "string",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d{1,3})?)?(Z|[+-]\\d{2}:?\\d{2})?$",
-      "description": "ISO date-time with optional fractional seconds and timezone."
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d{1,3})?)?(Z|[+-]\\d{2}:?\\d{2})?$"
     },
     "DateConstraint": {
-      "description": "ISO date, ISO date-time, or relative keyword.",
       "oneOf": [
         {
           "$ref": "#/$defs/RelativeDateKeyword"
@@ -100,34 +121,8 @@
         }
       ]
     },
-    "SelectOptionI18n": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "title": {
-          "$ref": "#/$defs/LocaleMap"
-        }
-      }
-    },
-    "SelectOption": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["const"],
-      "properties": {
-        "const": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "i18n": {
-          "$ref": "#/$defs/SelectOptionI18n"
-        }
-      }
-    },
     "XPermissions": {
       "type": "object",
-      "description": "Role-based visibility and read-only overrides when permissionKey is set.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
@@ -143,10 +138,22 @@
     },
     "XEventFieldMapping": {
       "type": "object",
-      "description": "Maps event types to payload field names.",
       "additionalProperties": {
         "type": "string"
       }
+    },
+    "XTypeFormula": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object"
+        }
+      ]
     },
     "FieldProps": {
       "type": {
@@ -283,15 +290,19 @@
         "description": "Allow extra properties on object. Default: unset."
       },
       "x-permissions": {
-        "description": "Role-based visibility and read-only overrides. Default: unset.",
+        "description": "Role-based visibility and read-only overrides when permissionKey is set. Default: unset.",
         "$ref": "#/$defs/XPermissions"
       },
       "x-type": {
         "type": "string",
         "description": "Custom semantic type (e.g. category). Default: unset."
       },
+      "x-type-formula": {
+        "description": "JSON Logic expression for computed field behavior. Default: unset.",
+        "$ref": "#/$defs/XTypeFormula"
+      },
       "x-jsf-presentation": {
-        "description": "UI presentation and layout options. Default: unset.",
+        "description": "Field widget and layout. inputType required. Default: unset.",
         "$ref": "#/$defs/Presentation"
       },
       "x-event-field-mapping": {
@@ -299,20 +310,253 @@
         "$ref": "#/$defs/XEventFieldMapping"
       }
     },
-    "FieldPropertyWhenStringTypes": {
-      "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "enum": ["text", "radio", "date", "datetime", "title", "description", "divider", "currency"]
+    "XJsfPresentationInputTypeGuard": {
+      "type": "object",
+      "properties": {
+        "x-jsf-presentation": {
+          "type": "object",
+          "required": ["inputType"],
+          "properties": {
+            "inputType": {}
+          }
+        }
+      },
+      "required": ["x-jsf-presentation"]
+    },
+    "PresentationStringInputTypes": {
+      "type": "string",
+      "enum": ["text", "radio", "date", "datetime", "title", "description", "divider", "currency"]
+    },
+    "PresentationNumberInputTypes": {
+      "type": "string",
+      "enum": ["number", "money", "percentage", "duration"]
+    },
+    "FieldPropertyHasStringPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "$ref": "#/$defs/PresentationStringInputTypes"
+                }
               }
             }
           }
+        }
+      ]
+    },
+    "FieldPropertyHasNumberPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
         },
-        "required": ["x-jsf-presentation"]
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "$ref": "#/$defs/PresentationNumberInputTypes"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasBooleanPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "const": "checkbox"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasSelectPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "const": "select"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasFilePresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "const": "file"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasIdentityPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "const": "identity"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasObjectPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "enum": ["fieldset", "uom"]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasGroupArrayPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "const": "group-array"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasCategoryPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "const": "category"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasAddressFieldsetPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType", "fieldsetVariant"],
+              "properties": {
+                "inputType": {
+                  "const": "fieldset"
+                },
+                "fieldsetVariant": {
+                  "const": "address"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyHasUomPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "const": "uom"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "FieldPropertyWhenStringTypes": {
+      "if": {
+        "$ref": "#/$defs/FieldPropertyHasStringPresentation"
       },
       "then": {
         "properties": {
@@ -324,18 +568,7 @@
     },
     "FieldPropertyWhenNumberTypes": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "enum": ["number", "money", "percentage", "duration"]
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasNumberPresentation"
       },
       "then": {
         "properties": {
@@ -347,18 +580,7 @@
     },
     "FieldPropertyWhenBooleanType": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "checkbox"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasBooleanPresentation"
       },
       "then": {
         "properties": {
@@ -370,18 +592,7 @@
     },
     "FieldPropertyWhenSelectType": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "select"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasSelectPresentation"
       },
       "then": {
         "properties": {
@@ -398,23 +609,41 @@
         }
       }
     },
-    "FieldPropertyWhenRadioOrSelectOneOf": {
-      "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "enum": ["radio", "select"]
+    "FieldPropertyHasRadioOrSelectPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType"],
+              "properties": {
+                "inputType": {
+                  "enum": ["radio", "select"]
+                }
               }
             }
-          },
-          "type": {
-            "$ref": "#/$defs/StringType"
           }
-        },
-        "required": ["x-jsf-presentation", "type"]
+        }
+      ]
+    },
+    "FieldPropertyWhenRadioOrSelectOneOf": {
+      "if": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/FieldPropertyHasRadioOrSelectPresentation"
+          },
+          {
+            "properties": {
+              "type": {
+                "$ref": "#/$defs/StringType"
+              }
+            },
+            "required": ["type"]
+          }
+        ]
       },
       "then": {
         "properties": {
@@ -430,21 +659,19 @@
     },
     "FieldPropertyWhenSelectMultiAnyOf": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "select"
-              }
-            }
+        "allOf": [
+          {
+            "$ref": "#/$defs/FieldPropertyHasSelectPresentation"
           },
-          "type": {
-            "const": "array"
+          {
+            "properties": {
+              "type": {
+                "const": "array"
+              }
+            },
+            "required": ["type"]
           }
-        },
-        "required": ["x-jsf-presentation", "type"]
+        ]
       },
       "then": {
         "properties": {
@@ -466,18 +693,7 @@
     },
     "FieldPropertyWhenFileType": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "file"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasFilePresentation"
       },
       "then": {
         "oneOf": [
@@ -517,18 +733,7 @@
     },
     "FieldPropertyWhenIdentityType": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "identity"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasIdentityPresentation"
       },
       "then": {
         "properties": {
@@ -544,18 +749,7 @@
     },
     "FieldPropertyWhenObjectTypes": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "enum": ["fieldset", "uom"]
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasObjectPresentation"
       },
       "then": {
         "properties": {
@@ -568,18 +762,7 @@
     },
     "FieldPropertyWhenGroupArrayType": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "group-array"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasGroupArrayPresentation"
       },
       "then": {
         "properties": {
@@ -604,18 +787,7 @@
     },
     "FieldPropertyWhenCategoryType": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "category"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasCategoryPresentation"
       },
       "then": {
         "properties": {
@@ -640,21 +812,7 @@
     },
     "FieldPropertyWhenAddressFieldset": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType", "fieldsetVariant"],
-            "properties": {
-              "inputType": {
-                "const": "fieldset"
-              },
-              "fieldsetVariant": {
-                "const": "address"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasAddressFieldsetPresentation"
       },
       "then": {
         "properties": {
@@ -667,18 +825,7 @@
     },
     "FieldPropertyWhenUomType": {
       "if": {
-        "properties": {
-          "x-jsf-presentation": {
-            "type": "object",
-            "required": ["inputType"],
-            "properties": {
-              "inputType": {
-                "const": "uom"
-              }
-            }
-          }
-        },
-        "required": ["x-jsf-presentation"]
+        "$ref": "#/$defs/FieldPropertyHasUomPresentation"
       },
       "then": {
         "properties": {
@@ -688,6 +835,49 @@
         },
         "required": ["properties"]
       }
+    },
+    "FieldPropertyTypeRules": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/FieldPropertyWhenStringTypes"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenNumberTypes"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenBooleanType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenSelectType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenRadioOrSelectOneOf"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenSelectMultiAnyOf"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenFileType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenIdentityType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenObjectTypes"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenGroupArrayType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenCategoryType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenAddressFieldset"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenUomType"
+        }
+      ]
     },
     "FieldPropertyDefaultWhenString": {
       "if": {
@@ -773,6 +963,25 @@
           }
         }
       }
+    },
+    "FieldPropertyDefaultRules": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenString"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenNumber"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenBoolean"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenObject"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyDefaultWhenArray"
+        }
+      ]
     },
     "StringProperty": {
       "allOf": [
@@ -952,6 +1161,9 @@
         "x-type": {
           "$ref": "#/$defs/FieldProps/x-type"
         },
+        "x-type-formula": {
+          "$ref": "#/$defs/FieldProps/x-type-formula"
+        },
         "x-jsf-presentation": {
           "$ref": "#/$defs/FieldProps/x-jsf-presentation"
         },
@@ -961,80 +1173,28 @@
       },
       "allOf": [
         {
-          "$ref": "#/$defs/FieldPropertyWhenStringTypes"
+          "$ref": "#/$defs/FieldPropertyTypeRules"
         },
         {
-          "$ref": "#/$defs/FieldPropertyWhenNumberTypes"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenBooleanType"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenSelectType"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenRadioOrSelectOneOf"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenSelectMultiAnyOf"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenFileType"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenIdentityType"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenObjectTypes"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenGroupArrayType"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenCategoryType"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenAddressFieldset"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyWhenUomType"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyDefaultWhenString"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyDefaultWhenNumber"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyDefaultWhenBoolean"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyDefaultWhenObject"
-        },
-        {
-          "$ref": "#/$defs/FieldPropertyDefaultWhenArray"
+          "$ref": "#/$defs/FieldPropertyDefaultRules"
         }
       ]
     },
     "FieldsetVariant": {
       "type": "string",
-      "enum": ["default", "address", "datafield", "preferred-supplier"],
-      "description": "Fieldset variant. Default: default."
+      "enum": ["default", "address", "datafield", "preferred-supplier"]
     },
     "TextVariant": {
       "type": "string",
-      "enum": ["default", "html"],
-      "description": "Text mode: plain or HTML. Default: default."
+      "enum": ["default", "html"]
     },
     "DurationVariation": {
       "type": "string",
-      "enum": ["days", "hours"],
-      "description": "Duration unit: days or hours. Default: none."
+      "enum": ["days", "hours"]
     },
     "NumberFormat": {
       "type": "string",
-      "enum": ["default", "integer", "decimal", "decimal-1"],
-      "description": "Number format: default (2dp), integer, decimal (6dp), decimal-1. Default: unset (up to 4dp)."
+      "enum": ["default", "integer", "decimal", "decimal-1"]
     },
     "CurrencyValue": {
       "type": "object",
@@ -1042,12 +1202,10 @@
       "required": ["code", "name"],
       "properties": {
         "code": {
-          "type": "string",
-          "description": "ISO 4217 currency code."
+          "type": "string"
         },
         "name": {
-          "type": "string",
-          "description": "Display name."
+          "type": "string"
         }
       }
     },
@@ -1115,7 +1273,7 @@
         "description": "Start new grid row. Default: false."
       },
       "views": {
-        "description": "Overrides for named view. Default: unset.",
+        "description": "Per-view presentation overrides. Omitted keys inherit base values. Default: unset.",
         "$ref": "#/$defs/PresentationViews"
       },
       "i18n": {
@@ -1152,7 +1310,8 @@
         "description": "Price book item filter key. Default: unset."
       },
       "textVariant": {
-        "$ref": "#/$defs/TextVariant"
+        "$ref": "#/$defs/TextVariant",
+        "description": "Text mode: plain or HTML. Default: default."
       },
       "canCopy": {
         "type": "boolean",
@@ -1171,20 +1330,24 @@
         "description": "Field supplying currency code. Default: unset."
       },
       "currency": {
-        "$ref": "#/$defs/CurrencyValue"
+        "$ref": "#/$defs/CurrencyValue",
+        "description": "Currency value with code (ISO 4217) and name (display name)."
       },
       "numberFormat": {
-        "$ref": "#/$defs/NumberFormat"
+        "$ref": "#/$defs/NumberFormat",
+        "description": "Number format: default (2dp), integer, decimal (6dp), decimal-1. Default: unset (up to 4dp)."
       },
       "onlyLowestLevelCategory": {
         "type": "boolean",
         "description": "Leaf categories only. Default: false."
       },
       "durationVariation": {
-        "$ref": "#/$defs/DurationVariation"
+        "$ref": "#/$defs/DurationVariation",
+        "description": "Duration unit: days or hours. Default: none."
       },
       "fieldsetVariant": {
-        "$ref": "#/$defs/FieldsetVariant"
+        "$ref": "#/$defs/FieldsetVariant",
+        "description": "Fieldset variant. Default: default."
       },
       "fieldsetFilter": {
         "description": "Filters for datafield/preferred-supplier fieldsets. Default: unset.",
@@ -1218,10 +1381,6 @@
         "type": "boolean",
         "description": "Disable geolocation; use saved buyer addresses only. Default: false."
       },
-      "multiple": {
-        "type": "boolean",
-        "description": "Allow multiple values. Default: false."
-      },
       "defaultItems": {
         "type": "integer",
         "minimum": 0,
@@ -1234,7 +1393,6 @@
     },
     "PresentationViews": {
       "type": "object",
-      "description": "Per-view presentation overrides. Omitted keys inherit base values.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
@@ -1334,17 +1492,14 @@
     },
     "PresentationSelectExtraProps": {
       "properties": {
-        "suffixTooltip": {
-          "$ref": "#/$defs/PresentationProps/suffixTooltip"
-        },
         "priceBooksItemFilterKey": {
           "$ref": "#/$defs/PresentationProps/priceBooksItemFilterKey"
         },
-        "multiple": {
-          "$ref": "#/$defs/PresentationProps/multiple"
-        },
         "suffixIcon": {
           "$ref": "#/$defs/PresentationProps/suffixIcon"
+        },
+        "suffixTooltip": {
+          "$ref": "#/$defs/PresentationProps/suffixTooltip"
         }
       }
     },
@@ -1423,26 +1578,63 @@
         }
       }
     },
-    "PresentationFileExtraProps": {
-      "properties": {
-        "multiple": {
-          "$ref": "#/$defs/PresentationProps/multiple"
-        }
-      }
-    },
-    "PresentationCurrencyExtraProps": {
-      "properties": {
-        "multiple": {
-          "$ref": "#/$defs/PresentationProps/multiple"
-        }
-      }
-    },
     "PresentationDisplayExtraProps": {
       "properties": {
         "i18n": {
           "$ref": "#/$defs/PresentationProps/i18n"
         }
       }
+    },
+    "PresentationLayoutPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views"
+      ]
+    },
+    "PresentationFieldBindingPropertyNames": {
+      "enum": ["i18n", "resetFieldsOnChange", "punchOutFilterKey", "stored", "externalKey"]
+    },
+    "PresentationCategoryExtraPropertyNames": {
+      "enum": ["onlyLowestLevelCategory", "priceBooksItemFilterKey"]
+    },
+    "PresentationDurationExtraPropertyNames": {
+      "enum": ["durationVariation"]
+    },
+    "PresentationFieldsetExtraPropertyNames": {
+      "enum": [
+        "fieldsetVariant",
+        "fieldsetFilter",
+        "datafieldSlug",
+        "datafieldPreview",
+        "addFieldText",
+        "mapPreferredSupplierToItems",
+        "addSupplierButton",
+        "geolocationSearchDisabled",
+        "priceBooksFilterKey"
+      ]
+    },
+    "PresentationGroupArrayExtraPropertyNames": {
+      "enum": ["addFieldText", "defaultItems"]
+    },
+    "PresentationMoneyExtraPropertyNames": {
+      "enum": ["currencyKey", "currency"]
+    },
+    "PresentationNumberFormatExtraPropertyNames": {
+      "enum": ["numberFormat"]
+    },
+    "PresentationSelectExtraPropertyNames": {
+      "enum": ["suffixTooltip", "priceBooksItemFilterKey", "suffixIcon"]
+    },
+    "PresentationTextExtraPropertyNames": {
+      "enum": ["textVariant", "canCopy", "suffixTooltip", "description", "suffixIcon"]
     },
     "PresentationAllPropertyNames": {
       "enum": [
@@ -1480,313 +1672,131 @@
         "addSupplierButton",
         "geolocationSearchDisabled",
         "priceBooksFilterKey",
-        "multiple",
         "defaultItems",
         "suffixIcon"
       ]
     },
     "PresentationCategoryPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "onlyLowestLevelCategory",
-        "priceBooksItemFilterKey"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationCategoryExtraPropertyNames"
+        }
       ]
     },
     "PresentationDatePropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey"
-      ]
+      "$ref": "#/$defs/PresentationStandardPropertyNames"
     },
     "PresentationDisplayPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutPropertyNames"
+        },
+        {
+          "enum": ["i18n"]
+        }
       ]
     },
     "PresentationDividerPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views"
-      ]
+      "$ref": "#/$defs/PresentationLayoutPropertyNames"
     },
     "PresentationDurationPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "durationVariation"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationDurationExtraPropertyNames"
+        }
       ]
     },
     "PresentationFieldsetPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "fieldsetVariant",
-        "fieldsetFilter",
-        "datafieldSlug",
-        "datafieldPreview",
-        "addFieldText",
-        "mapPreferredSupplierToItems",
-        "addSupplierButton",
-        "geolocationSearchDisabled",
-        "priceBooksFilterKey"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldsetExtraPropertyNames"
+        }
       ]
     },
     "PresentationGroupArrayPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "addFieldText",
-        "defaultItems"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationGroupArrayExtraPropertyNames"
+        }
       ]
     },
     "PresentationFilePropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "multiple"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        }
       ]
     },
     "PresentationCurrencyPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "multiple"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        }
       ]
     },
     "PresentationMoneyPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "currencyKey",
-        "currency"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationMoneyExtraPropertyNames"
+        }
       ]
     },
     "PresentationNumberPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "numberFormat"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationNumberFormatExtraPropertyNames"
+        }
       ]
     },
     "PresentationPercentagePropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey"
-      ]
+      "$ref": "#/$defs/PresentationStandardPropertyNames"
     },
     "PresentationSelectPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "suffixTooltip",
-        "priceBooksItemFilterKey",
-        "multiple",
-        "suffixIcon"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationSelectExtraPropertyNames"
+        }
       ]
     },
     "PresentationStandardPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationLayoutPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationFieldBindingPropertyNames"
+        }
       ]
     },
     "PresentationTextPropertyNames": {
-      "enum": [
-        "inputType",
-        "supplierVisible",
-        "step",
-        "isHidden",
-        "size",
-        "gridColumn",
-        "tableColumnFlex",
-        "gridOffset",
-        "gridBreak",
-        "views",
-        "i18n",
-        "resetFieldsOnChange",
-        "punchOutFilterKey",
-        "stored",
-        "externalKey",
-        "textVariant",
-        "canCopy",
-        "suffixTooltip",
-        "description",
-        "suffixIcon"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PresentationStandardPropertyNames"
+        },
+        {
+          "$ref": "#/$defs/PresentationTextExtraPropertyNames"
+        }
       ]
     },
     "PresentationText": {
@@ -1945,9 +1955,6 @@
         },
         {
           "$ref": "#/$defs/PresentationFieldBindingProps"
-        },
-        {
-          "$ref": "#/$defs/PresentationFileExtraProps"
         },
         {
           "properties": {
@@ -2140,9 +2147,6 @@
           "$ref": "#/$defs/PresentationFieldBindingProps"
         },
         {
-          "$ref": "#/$defs/PresentationCurrencyExtraProps"
-        },
-        {
           "properties": {
             "inputType": {
               "const": "currency"
@@ -2282,9 +2286,332 @@
         "duration"
       ]
     },
+    "PresentationIfInputTypeIsText": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "text"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationText"
+      }
+    },
+    "PresentationIfInputTypeIsNumber": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "number"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationNumber"
+      }
+    },
+    "PresentationIfInputTypeIsRadio": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "radio"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationRadio"
+      }
+    },
+    "PresentationIfInputTypeIsCheckbox": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "checkbox"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationCheckbox"
+      }
+    },
+    "PresentationIfInputTypeIsSelect": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "select"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationSelect"
+      }
+    },
+    "PresentationIfInputTypeIsDate": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "date"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationDate"
+      }
+    },
+    "PresentationIfInputTypeIsDateTime": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "datetime"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationDateTime"
+      }
+    },
+    "PresentationIfInputTypeIsFile": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "file"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationFile"
+      }
+    },
+    "PresentationIfInputTypeIsIdentity": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "identity"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationIdentity"
+      }
+    },
+    "PresentationIfInputTypeIsTitle": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "title"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationTitle"
+      }
+    },
+    "PresentationIfInputTypeIsDescription": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "description"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationDescription"
+      }
+    },
+    "PresentationIfInputTypeIsFieldset": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "fieldset"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationFieldset"
+      }
+    },
+    "PresentationIfInputTypeIsGroupArray": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "group-array"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationGroupArray"
+      }
+    },
+    "PresentationIfInputTypeIsCategory": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "category"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationCategory"
+      }
+    },
+    "PresentationIfInputTypeIsCurrency": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "currency"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationCurrency"
+      }
+    },
+    "PresentationIfInputTypeIsDivider": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "divider"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationDivider"
+      }
+    },
+    "PresentationIfInputTypeIsMoney": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "money"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationMoney"
+      }
+    },
+    "PresentationIfInputTypeIsUom": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "uom"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationUom"
+      }
+    },
+    "PresentationIfInputTypeIsPercentage": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "percentage"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationPercentage"
+      }
+    },
+    "PresentationIfInputTypeIsDuration": {
+      "if": {
+        "properties": {
+          "inputType": {
+            "const": "duration"
+          }
+        },
+        "required": ["inputType"]
+      },
+      "then": {
+        "$ref": "#/$defs/PresentationDuration"
+      }
+    },
+    "PresentationInputTypeRules": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsText"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsNumber"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsRadio"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsCheckbox"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsSelect"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsDate"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsDateTime"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsFile"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsIdentity"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsTitle"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsDescription"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsFieldset"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsGroupArray"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsCategory"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsCurrency"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsDivider"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsMoney"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsUom"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsPercentage"
+        },
+        {
+          "$ref": "#/$defs/PresentationIfInputTypeIsDuration"
+        }
+      ]
+    },
     "Presentation": {
       "type": "object",
-      "description": "Field widget and layout. inputType required.",
       "propertyNames": {
         "$ref": "#/$defs/PresentationAllPropertyNames"
       },
@@ -2298,264 +2625,7 @@
       },
       "allOf": [
         {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "text"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationText"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "number"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationNumber"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "radio"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationRadio"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "checkbox"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationCheckbox"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "select"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationSelect"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "date"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationDate"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "datetime"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationDateTime"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "file"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationFile"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "identity"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationIdentity"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "title"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationTitle"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "description"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationDescription"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "fieldset"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationFieldset"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "group-array"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationGroupArray"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "category"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationCategory"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "currency"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationCurrency"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "divider"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationDivider"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "money"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationMoney"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "uom"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationUom"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "percentage"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationPercentage"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "inputType": {
-                "const": "duration"
-              }
-            },
-            "required": ["inputType"]
-          },
-          "then": {
-            "$ref": "#/$defs/PresentationDuration"
-          }
+          "$ref": "#/$defs/PresentationInputTypeRules"
         }
       ]
     }

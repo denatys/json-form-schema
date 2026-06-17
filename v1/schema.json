@@ -597,7 +597,7 @@
                 "type": "object"
               }
             },
-            "required": ["type", "properties"]
+            "required": ["properties"]
           }
         },
         "required": ["items"]

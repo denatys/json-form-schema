@@ -136,7 +136,7 @@
           "isHidden": {
             "$ref": "#/$defs/PresentationProps/isHidden"
           },
-          "readOnly": {
+          "isReadOnly": {
             "$ref": "#/$defs/FieldProps/readOnly"
           }
         }
@@ -258,10 +258,18 @@
               "type": "object"
             }
           },
+          "required": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
           "additionalProperties": {
             "type": "boolean"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "required": {
         "type": "array",
@@ -290,6 +298,19 @@
       "x-event-field-mapping": {
         "description": "Maps event types to payload field names. Default: unset.",
         "$ref": "#/$defs/XEventFieldMapping"
+      },
+      "scopedJsonSchema": {
+        "type": "object",
+        "description": "Additional JSON Schema properties scoped to nested field values. Default: unset.",
+        "properties": {
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": false
       }
     },
     "FieldPropertyWhenStringTypes": {
@@ -442,6 +463,7 @@
         "properties": {
           "items": {
             "type": "object",
+            "required": ["anyOf"],
             "properties": {
               "anyOf": {
                 "type": "array",
@@ -451,7 +473,8 @@
               }
             }
           }
-        }
+        },
+        "required": ["items"]
       }
     },
     "FieldPropertyWhenFileType": {
@@ -470,18 +493,39 @@
         "required": ["x-jsf-presentation"]
       },
       "then": {
-        "properties": {
-          "type": {
-            "oneOf": [
-              {
+        "oneOf": [
+          {
+            "properties": {
+              "type": {
                 "$ref": "#/$defs/StringType"
               },
-              {
-                "const": "array"
+              "format": {
+                "const": "uuid"
               }
-            ]
+            },
+            "required": ["format"]
+          },
+          {
+            "properties": {
+              "type": {
+                "const": "array"
+              },
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "const": "string"
+                  },
+                  "format": {
+                    "const": "uuid"
+                  }
+                },
+                "required": ["type", "format"]
+              }
+            },
+            "required": ["items"]
           }
-        }
+        ]
       }
     },
     "FieldPropertyWhenIdentityType": {
@@ -554,6 +598,18 @@
         "properties": {
           "type": {
             "const": "array"
+          },
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "object"
+              },
+              "properties": {
+                "type": "object"
+              }
+            },
+            "required": ["type", "properties"]
           }
         },
         "required": ["items"]
@@ -914,6 +970,9 @@
         },
         "x-event-field-mapping": {
           "$ref": "#/$defs/FieldProps/x-event-field-mapping"
+        },
+        "scopedJsonSchema": {
+          "$ref": "#/$defs/FieldProps/scopedJsonSchema"
         }
       },
       "allOf": [
@@ -1174,6 +1233,19 @@
       "geolocationSearchDisabled": {
         "type": "boolean",
         "description": "Disable geolocation; use saved buyer addresses only. Default: false."
+      },
+      "multiple": {
+        "type": "boolean",
+        "description": "Allow multiple values. Default: false."
+      },
+      "defaultItems": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Initial number of items for group-array fields. Default: unset."
+      },
+      "suffixIcon": {
+        "type": "string",
+        "description": "Suffix icon name. Default: unset."
       }
     },
     "PresentationViews": {
@@ -1270,6 +1342,9 @@
         },
         "description": {
           "$ref": "#/$defs/PresentationProps/description"
+        },
+        "suffixIcon": {
+          "$ref": "#/$defs/PresentationProps/suffixIcon"
         }
       }
     },
@@ -1280,6 +1355,12 @@
         },
         "priceBooksItemFilterKey": {
           "$ref": "#/$defs/PresentationProps/priceBooksItemFilterKey"
+        },
+        "multiple": {
+          "$ref": "#/$defs/PresentationProps/multiple"
+        },
+        "suffixIcon": {
+          "$ref": "#/$defs/PresentationProps/suffixIcon"
         }
       }
     },
@@ -1352,6 +1433,23 @@
       "properties": {
         "addFieldText": {
           "$ref": "#/$defs/PresentationProps/addFieldText"
+        },
+        "defaultItems": {
+          "$ref": "#/$defs/PresentationProps/defaultItems"
+        }
+      }
+    },
+    "PresentationFileExtraProps": {
+      "properties": {
+        "multiple": {
+          "$ref": "#/$defs/PresentationProps/multiple"
+        }
+      }
+    },
+    "PresentationCurrencyExtraProps": {
+      "properties": {
+        "multiple": {
+          "$ref": "#/$defs/PresentationProps/multiple"
         }
       }
     },
@@ -1397,7 +1495,10 @@
         "mapPreferredSupplierToItems",
         "addSupplierButton",
         "geolocationSearchDisabled",
-        "priceBooksFilterKey"
+        "priceBooksFilterKey",
+        "multiple",
+        "defaultItems",
+        "suffixIcon"
       ]
     },
     "PresentationCategoryPropertyNames": {
@@ -1534,7 +1635,48 @@
         "punchOutFilterKey",
         "stored",
         "externalKey",
-        "addFieldText"
+        "addFieldText",
+        "defaultItems"
+      ]
+    },
+    "PresentationFilePropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "multiple"
+      ]
+    },
+    "PresentationCurrencyPropertyNames": {
+      "enum": [
+        "inputType",
+        "supplierVisible",
+        "step",
+        "isHidden",
+        "size",
+        "gridColumn",
+        "tableColumnFlex",
+        "gridOffset",
+        "gridBreak",
+        "views",
+        "i18n",
+        "resetFieldsOnChange",
+        "punchOutFilterKey",
+        "stored",
+        "externalKey",
+        "multiple"
       ]
     },
     "PresentationMoneyPropertyNames": {
@@ -1615,7 +1757,9 @@
         "stored",
         "externalKey",
         "suffixTooltip",
-        "priceBooksItemFilterKey"
+        "priceBooksItemFilterKey",
+        "multiple",
+        "suffixIcon"
       ]
     },
     "PresentationStandardPropertyNames": {
@@ -1657,7 +1801,8 @@
         "textVariant",
         "canCopy",
         "suffixTooltip",
-        "description"
+        "description",
+        "suffixIcon"
       ]
     },
     "PresentationText": {
@@ -1818,13 +1963,16 @@
           "$ref": "#/$defs/PresentationFieldBindingProps"
         },
         {
+          "$ref": "#/$defs/PresentationFileExtraProps"
+        },
+        {
           "properties": {
             "inputType": {
               "const": "file"
             }
           },
           "propertyNames": {
-            "$ref": "#/$defs/PresentationStandardPropertyNames"
+            "$ref": "#/$defs/PresentationFilePropertyNames"
           }
         }
       ]
@@ -2008,13 +2156,16 @@
           "$ref": "#/$defs/PresentationFieldBindingProps"
         },
         {
+          "$ref": "#/$defs/PresentationCurrencyExtraProps"
+        },
+        {
           "properties": {
             "inputType": {
               "const": "currency"
             }
           },
           "propertyNames": {
-            "$ref": "#/$defs/PresentationStandardPropertyNames"
+            "$ref": "#/$defs/PresentationCurrencyPropertyNames"
           }
         }
       ]

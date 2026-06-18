@@ -538,6 +538,29 @@
         }
       ]
     },
+    "FieldPropertyHasPreferredSupplierFieldsetPresentation": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/XJsfPresentationInputTypeGuard"
+        },
+        {
+          "properties": {
+            "x-jsf-presentation": {
+              "type": "object",
+              "required": ["inputType", "fieldsetVariant"],
+              "properties": {
+                "inputType": {
+                  "const": "fieldset"
+                },
+                "fieldsetVariant": {
+                  "const": "preferred-supplier"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "FieldPropertyHasUomPresentation": {
       "allOf": [
         {
@@ -827,6 +850,19 @@
         "required": ["properties"]
       }
     },
+    "FieldPropertyWhenPreferredSupplierFieldset": {
+      "if": {
+        "$ref": "#/$defs/FieldPropertyHasPreferredSupplierFieldsetPresentation"
+      },
+      "then": {
+        "properties": {
+          "properties": {
+            "$ref": "#/$defs/PreferredSupplierFieldsetProperties"
+          }
+        },
+        "required": ["properties"]
+      }
+    },
     "FieldPropertyWhenUomType": {
       "if": {
         "$ref": "#/$defs/FieldPropertyHasUomPresentation"
@@ -885,6 +921,9 @@
         },
         {
           "$ref": "#/$defs/FieldPropertyWhenAddressFieldset"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenPreferredSupplierFieldset"
         },
         {
           "$ref": "#/$defs/FieldPropertyWhenUomType"
@@ -1070,6 +1109,31 @@
           "$ref": "#/$defs/StringProperty"
         },
         "zip": {
+          "$ref": "#/$defs/StringProperty"
+        }
+      }
+    },
+    "PreferredSupplierFieldsetProperties": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "email", "first_name", "last_name", "external_id"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "title": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "email": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "first_name": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "last_name": {
+          "$ref": "#/$defs/StringProperty"
+        },
+        "external_id": {
           "$ref": "#/$defs/StringProperty"
         }
       }

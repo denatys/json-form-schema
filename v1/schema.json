@@ -308,6 +308,10 @@
       "x-event-field-mapping": {
         "description": "Maps event types to payload field names. Default: unset.",
         "$ref": "#/$defs/XEventFieldMapping"
+      },
+      "x-set-slug": {
+        "type": "string",
+        "description": "UOM set slug for `uom` fields. Restricts the unit picker to units from this set. Default: unset."
       }
     },
     "XJsfPresentationInputTypeGuard": {
@@ -836,6 +840,14 @@
         "required": ["properties"]
       }
     },
+    "FieldPropertyWhenXSetSlugRequiresUom": {
+      "if": {
+        "required": ["x-set-slug"]
+      },
+      "then": {
+        "$ref": "#/$defs/FieldPropertyHasUomPresentation"
+      }
+    },
     "FieldPropertyTypeRules": {
       "allOf": [
         {
@@ -876,6 +888,9 @@
         },
         {
           "$ref": "#/$defs/FieldPropertyWhenUomType"
+        },
+        {
+          "$ref": "#/$defs/FieldPropertyWhenXSetSlugRequiresUom"
         }
       ]
     },
@@ -1169,6 +1184,9 @@
         },
         "x-event-field-mapping": {
           "$ref": "#/$defs/FieldProps/x-event-field-mapping"
+        },
+        "x-set-slug": {
+          "$ref": "#/$defs/FieldProps/x-set-slug"
         }
       },
       "allOf": [
